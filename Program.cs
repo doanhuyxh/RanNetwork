@@ -39,6 +39,7 @@ namespace RanNetwork
                        .AddDefaultTokenProviders();
 
             builder.Services.AddScoped<UserManager<ApplicationUser>>();
+            builder.Services.AddMemoryCache();
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
             {

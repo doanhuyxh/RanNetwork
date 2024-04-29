@@ -38,19 +38,42 @@ namespace RanNetwork.Controllers
         }
 
         [HttpPost("admin_ql/save_link")]
-        public IActionResult SaveLink([FromForm] string link)
+        public IActionResult SaveLink([FromForm] string link, [FromQuery] string type)
         {
+            WebConfig linkWebConfig;
 
-            WebConfig linkYT = _context.WebConfig.FirstOrDefault(i => i.KeyName == "Youtube");
-            if (linkYT != null)
+            switch (type)
             {
-                linkYT.value = link;
-                _context.Update(linkYT);
-                _context.SaveChanges();
+                case ("Youtube"):
+                    linkWebConfig = _context.WebConfig.FirstOrDefault(i => i.KeyName == "Youtube");
+                    if (linkWebConfig != null)
+                    {
+                        linkWebConfig.value = link;
+                        _context.Update(linkWebConfig);
+                        _context.SaveChanges();
+                    }
+                    break;
+
+                case ("FileGame"):
+                    linkWebConfig = _context.WebConfig.FirstOrDefault(i => i.KeyName == "FileGame");
+                    if (linkWebConfig != null)
+                    {
+                        linkWebConfig.value = link;
+                        _context.Update(linkWebConfig);
+                        _context.SaveChanges();
+                    }
+                    break;
+
             }
 
-            return Ok(linkYT);
+
+            return Ok(new
+            {
+                code = 200,
+                message = "success"
+            });
         }
+
 
         [DisableRequestSizeLimit]
         [HttpPost("admin_ql/upload_file")]
@@ -58,16 +81,14 @@ namespace RanNetwork.Controllers
         {
             try
             {
-                var webRoot = _hostingEnvironment.WebRootPath; // _hostingEnvironment là một instance của IWebHostEnvironment
-                var path = Path.Combine(webRoot, "upload", filename);
-
+                var path = Path.Combine(_hostingEnvironment.WebRootPath, "upload", filename);
 
                 using (var stream = new FileStream(path, offset == 0 ? FileMode.Create : FileMode.Append))
                 {
                     await file.CopyToAsync(stream);
                 }
 
-                return Ok(path);
+                return Ok(Path.Combine("upload", filename));
             }
             catch (Exception ex)
             {

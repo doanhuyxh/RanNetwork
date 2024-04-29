@@ -37,7 +37,7 @@
         let data = new FormData()
         data.append("link", $("#Youtube").val())
 
-        fetch("/admin_ql/save_link", {
+        fetch("/admin_ql/save_link?type=Youtube", {
             method: "POST",
             body: data
         })
@@ -49,27 +49,42 @@
 
     fileInput.addEventListener('change', function (event) {
         const file = event.target.files[0];
-        const chunkSize = 1024 * 1024; // 1MB
+        const chunkSize = 1024 * 1024 * 25; // 25MB
         let offset = 0;
-
+        $('#preloader').fadeIn();
         function uploadNextChunk() {
             if (offset < file.size) {
                 const chunk = file.slice(offset, offset + chunkSize);
                 uploadChunk(chunk, offset, file.name);
                 offset += chunkSize;
+            } else {
+                $('#preloader').fadeOut();
+
+                let data = new FormData()
+                data.append("link", localStorage.getItem("filepath"))
+                fetch("/admin_ql/save_link?type=FileGame", {
+                    method: "POST",
+                    body: data
+                })
+
             }
         }
 
         function uploadChunk(chunk, offset, filename) {
+            const normalizedFilename = filename.toLowerCase().replace(/\s+/g, '_');
             const formData = new FormData();
             formData.append('file', chunk);
             formData.append('offset', offset);
-            formData.append('filename', filename);
+            formData.append('filename', normalizedFilename);
 
             fetch('/admin_ql/upload_file', {
                 method: 'POST',
                 body: formData
-            }).then(uploadNextChunk);
+            }).then(res => res.text())
+                .then(res => {
+                    console.log(res)
+                    localStorage.setItem("filepath", `/${res}`)
+                }).then(uploadNextChunk)
         }
 
         uploadNextChunk();
