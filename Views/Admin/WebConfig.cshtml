@@ -1,0 +1,82 @@
+﻿<div class="container">
+
+
+    <div class="row mt-4">
+
+        <div class="col m-3">
+            <div class="form-group d-flex">
+                <label class="btn btn-white text-dark text-nowrap" for="Youtube">Link youtube </label>
+                <input class="form-control" value="@ViewBag.Youtube" id="Youtube" />
+                <p class="btn btn-success" onclick="SaveLinkYoutube()">Lưu</p>
+            </div>
+        </div>
+
+
+        <div class="col m-3">
+            <div class="form-group">
+                <label class="form-label btn btn-success" for="fileInput">Tải lên</label>
+                <a class="btn btn btn-link" download="@ViewBag.FileGame">Tải về</a>
+                <input class="d-none" type="file" id="fileInput" />
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+
+<script>
+
+    async function SaveData() {
+
+
+    }
+
+    function SaveLinkYoutube() {
+
+        let data = new FormData()
+        data.append("link", $("#Youtube").val())
+
+        fetch("/admin_ql/save_link", {
+            method: "POST",
+            body: data
+        })
+
+    }
+
+
+    const fileInput = document.getElementById('fileInput');
+
+    fileInput.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        const chunkSize = 1024 * 1024; // 1MB
+        let offset = 0;
+
+        function uploadNextChunk() {
+            if (offset < file.size) {
+                const chunk = file.slice(offset, offset + chunkSize);
+                uploadChunk(chunk, offset, file.name);
+                offset += chunkSize;
+            }
+        }
+
+        function uploadChunk(chunk, offset, filename) {
+            const formData = new FormData();
+            formData.append('file', chunk);
+            formData.append('offset', offset);
+            formData.append('filename', filename);
+
+            fetch('/admin_ql/upload_file', {
+                method: 'POST',
+                body: formData
+            }).then(uploadNextChunk);
+        }
+
+        uploadNextChunk();
+    });
+
+
+
+
+
+</script>
